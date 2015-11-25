@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import json
 import logging
 import os
 import os.path
@@ -133,11 +134,17 @@ class AdmiralBot(object):
         * message: The text of the user's message.
         """
 
+        # Load this user's variables.
+        self.load_uservars(username)
+
         # Get a reply for the user.
         reply = self.rs.reply(username, message)
 
         # Log the transaction.
         self.log_chat(username, message, reply)
+
+        # Store the user's variables.
+        self.save_uservars(username)
 
         # Send the response back.
         # TODO: handle queueing and delayed responses.
@@ -153,6 +160,9 @@ class AdmiralBot(object):
         if not os.path.isdir(outdir):
             os.makedirs(outdir, mode=0o755)
 
+        self.log.info("[{}] {}".format(username, message))
+        self.log.info("[{}] {}".format(self.c.personality.name, reply))
+
         with open(outfile, "a", encoding="utf-8") as fh:
             today = datetime.datetime.today()
             ts = today.strftime(self.c.logging.date_format)
@@ -165,6 +175,39 @@ class AdmiralBot(object):
                 bot=self.c.personality.name,
                 reply=reply,
                 ))
+
+    def load_uservars(self, username):
+        """Load a user's variables from disk."""
+        if not os.path.isdir("users"):
+            os.mkdir("users")
+
+        sanitized = re.sub(r'[^A-Za-z0-9_\-@]+', '', username)
+        filename = "users/{}.json".format(sanitized)
+        if not os.path.isfile(filename):
+            return
+
+        with open(filename, "r", encoding="utf-8") as fh:
+            data = fh.read()
+            try:
+                params = json.loads(data)
+                print(params)
+                for key, value in params.items():
+                    if type(value) is str:
+                        self.rs.set_uservar(username, key, value)
+                        print("SET VAR:", username, key, value)
+            except:
+                pass
+
+    def save_uservars(self, username):
+        """Save a user's variables to disk."""
+        if not os.path.isdir("users"):
+            os.mkdir("users")
+
+        sanitized = re.sub(r'[^A-Za-z0-9_\-@]+', '', username)
+        filename = "users/{}.json".format(sanitized)
+
+        with open(filename, "w", encoding="utf-8") as fh:
+            fh.write(json.dumps(self.rs.get_uservars(username)))
 
     ###
     # Utility/Misc functions.
