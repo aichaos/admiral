@@ -1,0 +1,3 @@
+hangups
+slackclient
+yamlsettings
