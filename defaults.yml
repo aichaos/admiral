@@ -6,14 +6,44 @@
 # name it `defaults.yml` and go through and edit the config variables.
 admiral:
 
+  ###
   # Chatbot personality configuration
+  ###
   personality:
     name: Admiral
     replies: brain/standard
 
+  ###
+  # Debug settings
+  ###
+  debug:
+    # Debug mode for the RiveScript module
+    rivescript: false
+
+  ###
   # Interfaces that the bot will communicate over. This is an array of
   # dictionaries; you can add as many as you like.
+  #
+  # Each interface requires an interface type and a unique ID.
+  # The `enabled` attribute can turn off an interface while not requiring you
+  # to delete its configuration.
+  ###
   interfaces:
-    - slack:
+    - interface: slack
+      id: Admiral-Slack
       enabled: false
+      username: admiral
       api_token: "your-slack-api-token"
+
+  ###
+  # Logging settings.
+  ###
+  logging:
+    # Format for the log lines.
+    format: "[%(asctime)s] - %(levelname)s - %(message)s"
+
+    # Date format for chat logs.
+    date_format: '%A, %B %d %Y @ %I:%M:%S %p'
+
+    # Log files.
+    status: logs/admiral.log
